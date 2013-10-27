@@ -7,7 +7,6 @@ Formerly an orchestra coding challenge.
 
 from flask import Flask, request, g, render_template
 import sqlite3 as db_driver
-import json
 from utils.process import get_photo_stats
 
 app = Flask(__name__)

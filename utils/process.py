@@ -3,28 +3,30 @@
 import sqlite3
 import calendar
 import datetime
+import json
 from pprint import pprint
 import requests
 
 YAHOO_API_KEY = '42ce6cfc281462a7b1c079ebe428bf6b'
 FLICKR_API_URL = 'http://api.flickr.com/services/rest'
-YAHOO_API_URL = 'http://api.flickr.com/services/auth'
+YAHOO_API_URL = 'http://where.yahooapis.com/v1/places.q'
 
 def get_photo_stats(city, start_date=None, end_date=None):
     '''
     Gets photo stats per city.
     '''
     if not start_date and not end_date:
-        end_time = datetime.datetime.now()
-        start_time = end_time + datetime.timedelta(days = -7)
+        end_date = datetime.datetime.now()
+        start_date = end_date + datetime.timedelta(days = -7)
     else:
-        start_time = datetime.strptime(start_date, '%m-%d-%Y')
-        end_time = datetime.strptime(end_date, '%m-%d-%Y')
+        start_date = datetime.datetime.strptime(start_date, '%m-%d-%Y')
+        end_date = datetime.datetime.strptime(end_date, '%m-%d-%Y')
 
-    start = datetime_to_unix(start_time)
-    end = datetime_to_unix(end_time)
+    start = datetime_to_unix(start_date)
+    end = datetime_to_unix(end_date)
 
     lat, lon = get_lat_lon(city)
+
     params = {
             'method' : 'flickr.photos.search',
             'min_taken_date' : start,
@@ -35,11 +37,29 @@ def get_photo_stats(city, start_date=None, end_date=None):
             'api_key': YAHOO_API_KEY,
             'format': 'json',
             }
+
     r = requests.get(FLICKR_API_URL, params=params)
-    return r.text
+    formatted_response = format_response(r)
+    return formatted_response
+
+def format_response(res):
+    '''
+    Load json into dict and structure for output in template
+    '''
+    return res.text
 
 def get_lat_lon(location):
-    return '37.722392', '-122.365723'
+    location_param = '({});'.format(location)
+    num_results = 'count=1'
+    yahoo_url = YAHOO_API_URL + location_param + num_results
+    params = {
+            'appid': YAHOO_API_KEY,
+            'format': 'json'
+            }
+    r = requests.get(yahoo_url, params=params)
+    res = json.loads(r.text)
+    return res['places']['place'][0]['centroid']['latitude'], \
+            res['places']['place'][0]['centroid']['longitude']
 
 def datetime_to_unix(d):
     '''
@@ -47,16 +67,6 @@ def datetime_to_unix(d):
     '''
     return calendar.timegm(d.utctimetuple())
 
-
-def test_flickr_api():
-    params = {
-            'api_key': YAHOO_API_KEY,
-            'method': 'flickr.test.echo',
-            'format': 'json',
-            }
-    r = requests.get(FLICKR_API_URL, params=params)
-    print r.status_code
-    pprint(r.text)
 
 def main():
     pprint(get_photo_stats('London'))
