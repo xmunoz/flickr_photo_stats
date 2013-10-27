@@ -1,6 +1,17 @@
 {% extends "input_form.html" %}
 {% block results %}
-    <div class='results container-narrow'>
-        {{ data }}
+<div class='results container-narrow'>
+        <table class="table table-bordered">
+            <tr>
+            <th>Date</th>
+            <th>Count</th>
+            </tr>
+            {% for date, count in data.iteritems()  %}
+            <tr>
+            <td>{{ date }}</td>
+            <td>{{ count }}</td>
+            </tr>
+            {% endfor %}
+        </table>
     </div>
 {% endblock %}
