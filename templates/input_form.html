@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-narrow">
+    <div class="row">
+        <form action="{{ url_for('index') }}" method="GET">
+            <fieldset>
+                <legend>
+                    <span>Flickr Photo Stats</span>
+                </legend> 
+                <div class="span6">
+                <label>City</label>
+                <input type="text" id="city" name="city">
+                </div>
+                <div class="span6">
+                    <label>Begin Date</label>
+                    <input type="text" class="span2" id="dp1" name="start_date"> 
+                </div>
+                <div class="span6">
+                    <label>End Date</label>
+                    <input type="text" class="span2" id="dp2" name="end_date">
+                </div>
+                <button type="submit" class="btn offset8">Submit</button>
+            </fieldset>    
+        </form>
+    </div>
+</div>
+    {% block results %}
+    {% endblock %}
+{% endblock %}
+

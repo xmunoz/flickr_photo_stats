@@ -1,0 +1,38 @@
+body {
+    padding-top: 65px; 
+}
+
+.container-narrow {
+    margin: 0 auto;
+    max-width: 700px;
+}
+
+small.last-updated {
+    font-size:12px;
+}
+
+span.summary-data {
+    display: block;
+    padding-bottom: 10px;
+}
+
+input.search-query {
+    margin-top: 5px;
+}
+
+h1, h2, h3 {
+    text-align: center;
+}
+
+span#updated-txt {
+    font-size:12px;
+}
+
+button.offset8 {
+    margin-left:650px;
+}
+
+div.well {
+    margin-left:120px;
+    margin-right:120px;
+}

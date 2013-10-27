@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>SetTV Engineering Test</title>    
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/diff.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/datepicker.css') }}">
+        <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap-datepicker.js') }}"></script>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    </head>
+    <body>
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="{{ url_for('index') }}">SetTV Engineering Test</a>
+                </div>
+            </div>
+        </div>
+        {% block content %}
+        {% endblock %}
+        <script>
+            $(function(){
+                $('#dp1').datepicker({
+                    format: 'mm-dd-yyyy'
+                });
+                $('#dp2').datepicker({
+                    format: 'mm-dd-yyyy'
+                });
+            });
+        </script>
+    </body>
+</html>
