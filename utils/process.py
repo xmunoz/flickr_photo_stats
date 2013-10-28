@@ -6,12 +6,15 @@ import datetime
 import json
 import os
 from pprint import pprint
+import threading
+import Queue
 import requests
 import time
 
 YAHOO_API_KEY = '42ce6cfc281462a7b1c079ebe428bf6b'
 FLICKR_API_URL = 'http://api.flickr.com/services/rest'
 YAHOO_API_URL = 'http://where.yahooapis.com/v1/places.q'
+MAX_WORKER_THREADS = 5
 
 def get_photo_stats(city, start_date=None, end_date=None):
     '''
@@ -35,30 +38,23 @@ def make_api_calls(city, start_date, end_date, lat, lon):
     TODO: implement threading or some other kind of async to retrieve data.
     '''
     delta = end_date - start_date
-    results = {}
+    thread_list = []
+    api_call_queue = Queue.Queue()
+
+    for i in range(MAX_WORKER_THREADS):
+        p = WorkerManager(api_call_queue)
+        p.start()
+
     for d in range(0, delta.days):
-
         start = start_date + datetime.timedelta(days = d)
-        pprint(datetime_to_unix(start))
         end = start + datetime.timedelta(days = 1)
-        pprint(datetime_to_unix(end))
-        params = {
-                'method' : 'flickr.photos.search',
-                'min_taken_date' : datetime_to_unix(start),
-                'max_taken_date' : datetime_to_unix(end),
-                'lat': lat,
-                'lon': lon,
-                'nojsoncallback': 1,
-                'accuracy': 11,
-                'api_key': YAHOO_API_KEY,
-                'format': 'json',
-            }
+        api_call_queue.put(WorkItem(city, start, end, lat, lon))
 
-        r = requests.get(FLICKR_API_URL, params=params)
-        key = datetime.datetime.strftime(start,'%B %d %Y')
-        results[key] = r.json()['photos']['total']
 
-    return results
+    # wait for all of the threads to finish working
+    api_call_queue.join()
+
+    return
 
 def format_response(res):
     '''
@@ -86,10 +82,43 @@ def datetime_to_unix(d):
     '''
     return calendar.timegm(d.utctimetuple())
 
+class WorkerManager (threading.Thread):
+    def __init__(self, queue):
+        threading.Thread.__init__(self)
+        self.queue = queue
+        self.results = []
+    def run(self):
+        while True:
+            item = self.queue.get()
+            self.results.append(item.make_api_call())
+            self.queue.task_done()
+
+class WorkItem:
+    def __init__(self, city, start, end, lat, lon):
+        self.city = city
+        self.start = start
+        self.end = end
+        self.lat = lat
+        self.lon = lon
+
+    def make_api_call(self):
+        params = {
+                'method' : 'flickr.photos.search',
+                'min_taken_date' : datetime_to_unix(self.start),
+                'max_taken_date' : datetime_to_unix(self.end),
+                'lat': self.lat,
+                'lon': self.lon,
+                'nojsoncallback': 1,
+                'accuracy': 11,
+                'api_key': YAHOO_API_KEY,
+                'format': 'json',
+            }
+        r = requests.get(FLICKR_API_URL, params=params)
+        key = datetime.datetime.strftime(self.start,'%B %d %Y')
+        return (key, r.json()['photos']['total'])
 
 def main():
-    pprint(get_photo_stats('London', '10-19-2013', '10-26-2013'))
-    #test_flickr_api()
+    pprint(get_photo_stats('London'))
 
 if __name__ == "__main__":
     main()
