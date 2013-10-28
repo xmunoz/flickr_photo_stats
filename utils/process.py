@@ -34,17 +34,19 @@ def get_photo_stats(city, start_date=None, end_date=None):
 
 def make_api_calls(city, start_date, end_date, lat, lon):
     '''
-    TODO: implement threading or some other kind of async to retrieve data.
+    Make threaded API calls.
     '''
     delta = end_date - start_date
     results = {}
     api_call_queue = Queue.Queue()
 
+    # initialize a pool of worker threads in daemon mode
     for i in range(MAX_WORKER_THREADS):
         p = WorkerManager(api_call_queue, results)
         p.daemon = True
         p.start()
 
+    # put calls in queue
     for d in range(0, delta.days):
         start = start_date + datetime.timedelta(days = d)
         end = start + datetime.timedelta(days = 1)

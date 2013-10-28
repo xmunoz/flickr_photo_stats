@@ -6,10 +6,10 @@
             <th>Date</th>
             <th>Count</th>
             </tr>
-            {% for date, count in data.iteritems()  %}
+            {% for date in data|dictsort  %}
             <tr>
-            <td>{{ date }}</td>
-            <td>{{ count }}</td>
+            <td>{{ date[0] }}</td>
+            <td>{{ date[1] }}</td>
             </tr>
             {% endfor %}
         </table>
