@@ -3,7 +3,6 @@
 import sqlite3
 import calendar
 import datetime
-import json
 import os
 from pprint import pprint
 import threading
@@ -38,11 +37,12 @@ def make_api_calls(city, start_date, end_date, lat, lon):
     TODO: implement threading or some other kind of async to retrieve data.
     '''
     delta = end_date - start_date
-    thread_list = []
+    results = {}
     api_call_queue = Queue.Queue()
 
     for i in range(MAX_WORKER_THREADS):
-        p = WorkerManager(api_call_queue)
+        p = WorkerManager(api_call_queue, results)
+        p.daemon = True
         p.start()
 
     for d in range(0, delta.days):
@@ -54,14 +54,8 @@ def make_api_calls(city, start_date, end_date, lat, lon):
     # wait for all of the threads to finish working
     api_call_queue.join()
 
-    return
+    return results
 
-def format_response(res):
-    '''
-    Load json into dict and structure for output in template
-    '''
-    data = res.json()
-    return data
 
 def get_lat_lon(location):
     location_param = '({});'.format(location)
@@ -72,7 +66,7 @@ def get_lat_lon(location):
             'format': 'json'
             }
     r = requests.get(yahoo_url, params=params)
-    res = json.loads(r.text)
+    res = r.json()
     return res['places']['place'][0]['centroid']['latitude'], \
             res['places']['place'][0]['centroid']['longitude']
 
@@ -83,14 +77,15 @@ def datetime_to_unix(d):
     return calendar.timegm(d.utctimetuple())
 
 class WorkerManager (threading.Thread):
-    def __init__(self, queue):
+    def __init__(self, queue, results):
         threading.Thread.__init__(self)
         self.queue = queue
-        self.results = []
+        self.results = results
     def run(self):
         while True:
             item = self.queue.get()
-            self.results.append(item.make_api_call())
+            key, val = item.make_api_call()
+            self.results[key] = val
             self.queue.task_done()
 
 class WorkItem:
@@ -115,7 +110,8 @@ class WorkItem:
             }
         r = requests.get(FLICKR_API_URL, params=params)
         key = datetime.datetime.strftime(self.start,'%B %d %Y')
-        return (key, r.json()['photos']['total'])
+        num_photos = r.json()['photos']['total']
+        return key, num_photos
 
 def main():
     pprint(get_photo_stats('London'))
