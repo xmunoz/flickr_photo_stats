@@ -9,6 +9,8 @@ from flask import Flask, request, g, render_template
 import sqlite3 as db_driver
 from utils.process import get_photo_stats
 
+from pprint import pprint
+
 app = Flask(__name__)
 
 
@@ -39,9 +41,10 @@ def _handle_request(params):
     conn = get_db()
     c = conn.cursor()
     if params:
-        photo_stats = get_photo_stats(params['city'], params['start_date'], params['end_date'])
+        photo_stats = get_photo_stats(params)
         close_db(conn)
-        return render_template('results.html', data=photo_stats)
+        tags = True if 'tags' in params else False
+        return render_template('results.html', data=photo_stats, tags=tags)
     else:
         close_db(conn)
         #load the page for the first time
