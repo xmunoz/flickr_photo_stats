@@ -1,10 +1,5 @@
 #! ~/Envs/mfa/flask/bin/python
 
-'''
-A proof-of-concept passwordless multi-factor authentications server.
-Formerly an orchestra coding challenge.
-'''
-
 from flask import Flask, request, g, render_template
 import sqlite3 as db_driver
 from utils.process import get_photo_stats
